@@ -9,11 +9,52 @@
 
 defined('ABSPATH') || exit;
 
-require_once plugin_dir_path(__FILE__) . 'includes/class-wp-therapy-survey-loader.php';
+class WP_Therapy_Survey {
+    private $version = '1.0.0';
+    private static $instance = null;
 
-// Inicjalizacja pluginu
+    public static function get_instance() {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    private function __construct() {
+        add_action('init', array($this, 'init'));
+        add_shortcode('therapy_survey', array($this, 'render_survey'));
+    }
+
+    public function init() {
+        wp_register_style(
+            'wp-therapy-survey',
+            plugins_url('assets/css/frontend.css', __FILE__),
+            array(),
+            $this->version
+        );
+
+        wp_register_script(
+            'wp-therapy-survey',
+            plugins_url('assets/js/frontend.js', __FILE__),
+            array('jquery'),
+            $this->version,
+            true
+        );
+    }
+
+    public function render_survey($atts) {
+        wp_enqueue_style('wp-therapy-survey');
+        wp_enqueue_script('wp-therapy-survey');
+
+        ob_start();
+        include plugin_dir_path(__FILE__) . 'templates/survey-template.php';
+        return ob_get_clean();
+    }
+}
+
+// Inicjalizacja
 function init_therapy_survey() {
-    return WP_Therapy_Survey_Loader::get_instance();
+    return WP_Therapy_Survey::get_instance();
 }
 
 init_therapy_survey(); 
